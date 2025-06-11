@@ -29,7 +29,7 @@ environ.Env.read_env()
 
 # @jwtRequired
 @csrf_exempt
-def list_master_employee(request):
+def list_job(request):
     try:
         validate_method(request, "GET")
         with transaction.atomic():
@@ -43,7 +43,7 @@ def list_master_employee(request):
             if validation_errors:
                 return Response.badRequest(request, message=validation_errors, messagetype="E")
             
-            data = get_data(table_name="employee_list", columns=["employee_uuid", "employee_name", "employee_picture", "employee_position_id"], search=search, search_columns=["employee_name"])
+            data = get_data(table_name="job", columns=["job_uuid", "position_job", "short_description", "available_until", "status_id"], search=search, search_columns=["position_job", "short_description"])
             
             return Response.ok(data=data, message="List data telah tampil", messagetype="S")
     except Exception as e:
@@ -52,45 +52,49 @@ def list_master_employee(request):
     
 # @jwtRequired
 @csrf_exempt
-def add_master_employee(request):
+def add_job(request):
     try:
         validate_method(request, "POST")
         with transaction.atomic():
             json_data = request.POST.dict()
-
+            
             rules = {
-                'employee_status_id': 'required',
-                'employee_name': 'required|string|min:3|max:62',
-                'employee_position_id': 'required',
+                'position_job': 'required|string|min:3|max:62',
+                'short_description': 'required|string|min:3|max:255',
+                'available_until': 'required',
+                'status_id': 'int',
             }
 
             validation_errors = validate_request(json_data, rules)
             if validation_errors:
                 return Response.badRequest(request, message=validation_errors, messagetype="E")
 
-            employee_picture = None
+            available_until = datetime.datetime.strptime(json_data.get("available_until"), '%d-%m-%Y').date()
+            
             fs = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT))
             files = request.FILES.getlist('picture')
-            folder = 'employee_images/'
+            folder = 'job_images/'
+            job_picture = None
             if files:
                 file = files[0]
                 filename = fs.save(folder + file.name, file)
                 file_url = fs.url(filename)
-                employee_picture = request.build_absolute_uri(file_url)
+                job_picture = request.build_absolute_uri(file_url)
 
-            employee_id = insert_get_id_data(
-                table_name="employee_list",
+            job_id = insert_get_id_data(
+                table_name="job",
                 data={
-                    "employee_picture": employee_picture,
-                    "employee_status_id": json_data.get("employee_status_id"),
-                    "employee_name": json_data.get("employee_name"),
-                    "employee_position_id": json_data.get("employee_position_id"),
+                    "position_job": json_data.get("position_job"),
+                    "short_description": json_data.get("short_description"),
+                    "available_until": available_until,
+                    "status_id": json_data.get("status_id"),
+                    "job_picture": job_picture,
                 },
-                column_id="employee_id"
+                column_id="job_id"
             )
 
-            employee_uuid = first_data( table_name="employee_list", columns=["employee_uuid"], filters={"employee_id": employee_id} )
-            return Response.ok(data=employee_uuid, message="Added!", messagetype="S")
+            job_uuid = first_data( table_name="job", columns=["job_uuid"], filters={"job_id": job_id} )
+            return Response.ok(data=job_uuid, message="Added!", messagetype="S")
     except Exception as e:
         log_exception(request, e)
         traceback.print_exc()
