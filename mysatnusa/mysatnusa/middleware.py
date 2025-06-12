@@ -26,10 +26,8 @@ def decode(token):
     except jwt.ExpiredSignatureError:
         raise Exception("Token has expired")
     except jwt.InvalidTokenError:
-        
-        return laravelJWTDecode(token_parts[1])
-        
-
+        raise Exception("Invalid token")
+  
 # JWT-required decorator
 def jwtRequired(fn):
     @wraps(fn)
@@ -46,9 +44,8 @@ def jwtRequired(fn):
             # Attach payload details to the request
             request.jwt_payload = payload
             request.jwt_uuid = payload.get('uuid')
-            request.jwt_user_id = jwt_uuid_conveter(request.jwt_uuid)  # Custom conversion function
-            request.jwt_badge_no = payload.get('badge_no')
-            request.jwt_fullname = payload.get('fullname')
+            request.jwt_badge_no = payload.get('badge')
+            request.jwt_fullname = payload.get('user_name')
 
         except Exception as e:
             # Return error if something goes wrong
@@ -58,42 +55,6 @@ def jwtRequired(fn):
         return fn(request, *args, **kwargs)
 
     return wrapper
-
-# laravelJWTDecode only returns payload-like dict
-def laravelJWTDecode(token):
-    if token is None:
-        raise Exception("No token provided")
-
-    try:
-        payload = jwt.decode(token, settings.LARAVEL_SECRET_KEY, algorithms=['HS256'])
-        badge_id = payload.get("sub")
-
-        data_db = get_data(
-            table_name="sso.v_view_all_user",
-            filters={"user_badge": badge_id},
-            columns="user_badge, user_name, user_password, is_active, user_uuid"
-        )
-
-        if not isinstance(data_db, list) or not data_db:
-            raise Exception("Invalid credentials. You are not registered with HR, please contact HR")
-
-        user_data = data_db[0]
-
-        if user_data.get('is_active') is False:
-            raise Exception("User is inactive. You are not yet active, please contact the administrator.")
-
-        # Construct a payload-like object
-        return {
-            "badge_no": user_data["user_badge"],
-            "fullname": user_data["user_name"],
-            "uuid": user_data["user_uuid"],
-            "source": "laravel"
-        }
-
-    except jwt.ExpiredSignatureError:
-        raise Exception("Token has expired (Laravel)")
-    except jwt.InvalidTokenError:
-        raise Exception("Invalid token (Laravel)")
     
 # Custom middleware to return a JSON response
 class JsonErrorMiddleware(MiddlewareMixin):

@@ -31,7 +31,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('SECRET_KEY')
-LARAVEL_SECRET_KEY = 'xO8Kx8D4idTBbsriod3TaqeOWEbRvt5026YoMlvgxJHx9cTE7iC8qowp1EPlVGbk'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG')

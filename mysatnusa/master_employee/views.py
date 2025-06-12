@@ -27,7 +27,7 @@ env = environ.Env(
 )
 environ.Env.read_env()
 
-# @jwtRequired
+@jwtRequired
 @csrf_exempt
 def list_master_employee(request):
     try:
@@ -50,7 +50,7 @@ def list_master_employee(request):
         traceback.print_exc()
         return Response.badRequest(request, message=str(e), messagetype="E")
     
-# @jwtRequired
+@jwtRequired
 @csrf_exempt
 def add_master_employee(request):
     try:
@@ -96,6 +96,7 @@ def add_master_employee(request):
         traceback.print_exc()
         return Response.badRequest(request, message=str(e), messagetype="E")
     
+@jwtRequired
 @csrf_exempt
 def update_employee(request, employee_uuid):
     try:
@@ -144,6 +145,7 @@ def update_employee(request, employee_uuid):
         traceback.print_exc()
         return Response.badRequest(request, message=str(e), messagetype="E")
 
+@jwtRequired
 @csrf_exempt
 def delete_employee(request, employee_uuid):
     try:
