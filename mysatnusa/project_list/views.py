@@ -27,7 +27,7 @@ env = environ.Env(
 )
 environ.Env.read_env()
 
-# @jwtRequired
+@jwtRequired
 @csrf_exempt
 def list_data_project(request):
     try:
@@ -50,7 +50,7 @@ def list_data_project(request):
         traceback.print_exc()
         return Response.badRequest(request, message=str(e), messagetype="E")
     
-# @jwtRequired
+@jwtRequired
 @csrf_exempt
 def insert_project(request):
     try:
@@ -64,6 +64,7 @@ def insert_project(request):
                 json_data['category'] = json.loads(json_data.get('category', '[]'))
                 json_data['technology'] = json.loads(json_data.get('technology', '[]'))
                 json_data['member_project'] = json.loads(json_data.get('member_project', '[]'))
+                json_data['job_relate'] = json.loads(json_data.get('job_relate', '[]'))
             except json.JSONDecodeError as e:
                 return Response.badRequest(request, message="Format list salah: " + str(e), messagetype="E")
 
@@ -76,6 +77,26 @@ def insert_project(request):
             validation_errors = validate_request(json_data, rules)
             if validation_errors:
                 return Response.badRequest(request, message=validation_errors, messagetype="E")
+            
+              # Langsung parse date di sini
+            start_project = json_data.get("start_project")
+            finish_project = json_data.get("finish_project")
+
+            if start_project:
+                try:
+                    start_project = datetime.datetime.strptime(start_project, "%Y-%m-%d").date()
+                except ValueError:
+                    return Response.badRequest(request, message="start_project harus format YYYY-MM-DD", messagetype="E")
+            else:
+                start_project = None
+
+            if finish_project:
+                try:
+                    finish_project = datetime.datetime.strptime(finish_project, "%Y-%m-%d").date()
+                except ValueError:
+                    return Response.badRequest(request, message="finish_project harus format YYYY-MM-DD", messagetype="E")
+            else:
+                finish_project = None
 
             thumbnail_project = None
             fs = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT))
@@ -94,7 +115,8 @@ def insert_project(request):
                     "title": json_data.get("title"),
                     "short_description": json_data.get("short_description"),
                     "description": json_data.get("description"),
-                    "created_by": "Admin",
+                    "start_project": json_data.get("start_project"),
+                    "finish_project": json_data.get("finish_project")
                 },
                 column_id="project_id"
             )
@@ -103,14 +125,12 @@ def insert_project(request):
                 insert_data("category_project", {
                     "project_id": project_id,
                     "category_id": item.get("category_id"),
-                    "created_by": "Admin"
                 })
 
             for item in json_data.get("technology", []):
                 insert_data("technology_project", {
                     "project_id": project_id,
                     "technology_id": item.get("technology_id"),
-                    "created_by": "Admin"
                 })
 
             for item in json_data.get("member_project", []):
@@ -118,7 +138,15 @@ def insert_project(request):
                     "project_id": project_id,
                     "employee_id": item.get("employee_id"),
                     "employee_name": item.get("employee_name"),
-                    "created_by": "Admin"
+                    "created_by": "Aryo",
+                })
+                
+            for item in json_data.get("job_relate", []):
+                insert_data("job_relate", {
+                    "project_id": project_id,
+                    "job_id": item.get("job_id"),
+                    "position_job": item.get("position_job"),
+                    "created_at": datetime.datetime.now()
                 })
 
             project_uuid = first_data( table_name="projects", columns=["project_uuid"], filters={"project_id": project_id} )
@@ -128,7 +156,8 @@ def insert_project(request):
         log_exception(request, e)
         traceback.print_exc()
         return Response.badRequest(request, message=str(e), messagetype="E")
-    
+
+@jwtRequired
 @csrf_exempt
 def update_project(request, project_uuid):
     try:

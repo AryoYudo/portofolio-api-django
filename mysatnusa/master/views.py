@@ -111,42 +111,47 @@ def master_status_member(request):
         traceback.print_exc()
         return Response.badRequest(request, message=str(e), messagetype="E")
     
-# # @jwtRequired
-# @csrf_exempt
-# def get_knowledge_data(request):
-#     try:
-#         validate_method(request, "GET")
-#         with transaction.atomic():
+@csrf_exempt
+def get_knowledge_data(request):
+    try:
+        # validate_method(request, "GET")
+        with transaction.atomic():
             
-#             projects = []
+            information_project = []
+
+            projects_list = get_data(
+                "projects",
+                columns="project_id, title, short_description, description, start_project, finish_project"
+            )
+            for p in projects_list:
+                pid = p["project_id"]
+                information_project.append({
+                    **p,
+                    "project_creator": get_data( "v_employee_participant", columns=["employee_name", "employee_status", "employee_position"], filters={"project_id": pid} ),
+                    "category_project": [c["category_name"] for c in get_data( "v_project_categories", columns=["category_name"], filters={"project_id": pid} )],
+                    "technology_project": [t["technology_name"] for t in get_data( "v_technology_project", columns=["technology_name"], filters={"project_id": pid} )]
+                })
+
+
+            information_employee_departement = get_data("v_employee", columns=["employee_name", "employee_status", "employee_position"])
             
-#             projects_list = get_data("projects", columns="project_id, title, short_description, description")
-#             for item in projects_list:
-#                 project_id = item.get("project_id")
+            information_job = []
+            job = get_data("v_job", columns=["position_job", "short_description", "available_until", "status_name"])
+            for i in job:
+                information_job.append({
+                    "position_name": i.get("position_job"),
+                    "description": i.get("short_description"),
+                    "available": i.get("available_until"),
+                    "status": i.get("status_name")
+                })
                 
-#                 technology = []
-#                 technology_id = get_data("technology_project", columns=["technology_id"], filters={"project_id": project_id})
-#                 for t in technology_id:
-#                     tech = get_value("m_technology", column_name="technology_name", filters={"technology_id": t.get("technology_id")})
-#                     technology.append({ tech })
+            data = {
+                "information_project": information_project,
+                "information_employee_departement": information_employee_departement,
+                "information_job": information_job,
+            }
                 
-#                 category_name = []
-#                 category_id = get_data("category_project", columns=["category_id"], filters={"project_id": project_id})
-#                 for c in category_id:
-#                     category = get_value("m_category", column_name="category_name", filters={"category_id": c.get("category_id")})
-#                     category_name.append({ category })
-                
-                
-#                 employee_name = []
-#                 employee_id = get_data("member_project", columns=["employee_id"], filters={"project_id": project_id})
-#                 for e in employee_id:
-#                     category = get_value("m_category", column_name="category_name", filters={"category_id": c.get("category_id")})
-                    
-                
-                
-                
-                
-#             return Response.ok(data=projects, message="List data telah tampil", messagetype="S")
-#     except Exception as e:
-#         traceback.print_exc()
-#         return Response.badRequest(request, message=str(e), messagetype="E")
+            return Response.ok(data=data, message="List data telah tampil", messagetype="S")
+    except Exception as e:
+        traceback.print_exc()
+        return Response.badRequest(request, message=str(e), messagetype="E")
