@@ -27,7 +27,7 @@ env = environ.Env(
 )
 environ.Env.read_env()
 
-# @jwtRequired
+@jwtRequired
 @csrf_exempt
 def list_job(request):
     try:
@@ -43,14 +43,14 @@ def list_job(request):
             if validation_errors:
                 return Response.badRequest(request, message=validation_errors, messagetype="E")
             
-            data = get_data(table_name="job", columns=["job_uuid", "position_job", "short_description", "available_until", "status_id"], search=search, search_columns=["position_job", "short_description"])
+            data = get_data(table_name="job", columns=["job_uuid", "position_job", "short_description", "available_until", "status_id", "created_at", "description", "job_picture"], search=search, search_columns=["position_job", "short_description"])
             
             return Response.ok(data=data, message="List data telah tampil", messagetype="S")
     except Exception as e:
         traceback.print_exc()
         return Response.badRequest(request, message=str(e), messagetype="E")
     
-# @jwtRequired
+@jwtRequired
 @csrf_exempt
 def add_job(request):
     try:
@@ -61,6 +61,7 @@ def add_job(request):
             rules = {
                 'position_job': 'required|string|min:3|max:62',
                 'short_description': 'required|string|min:3|max:255',
+                'description': 'required|string|min:3|max:1024',
                 'available_until': 'required',
                 'status_id': 'int',
             }
@@ -89,6 +90,7 @@ def add_job(request):
                     "available_until": available_until,
                     "status_id": json_data.get("status_id"),
                     "job_picture": job_picture,
+                    "description": json_data.get("description"),
                 },
                 column_id="job_id"
             )
@@ -101,26 +103,31 @@ def add_job(request):
         return Response.badRequest(request, message=str(e), messagetype="E")
     
 @csrf_exempt
-def update_employee(request, employee_uuid):
+def update_job(request, job_uuid):
     try:
         validate_method(request, "POST")
         with transaction.atomic():
             json_data = request.POST.dict()
-            employee_id = get_value('employee_list', filters={'employee_uuid': employee_uuid}, column_name='employee_id')
-            if not exists_data('employee_list', filters={"employee_id": employee_id}):
-                return Response.badRequest(request, message="Employee Tidak Ditemukan", messagetype="E")
+            job_id = get_value('job', filters={'job_uuid': job_uuid}, column_name='job_id')
+            
+            if not exists_data('job', filters={"job_id": job_id}):
+                return Response.badRequest(request, message="Job Tidak Ditemukan", messagetype="E")
 
             rules = {
-                'employee_status_id': 'int',
-                'employee_name': 'required|string|min:3|max:62',
-                'employee_position_id': 'required',
+                'position_job': 'required|string|min:3|max:62',
+                'short_description': 'required|string|min:3|max:255',
+                'description': 'required|string|min:3|max:1024',
+                'available_until': 'required',
+                'status_id': 'int',
             }
             
             validation_errors = validate_request(json_data, rules)
             if validation_errors:
                 return Response.badRequest(request, message=validation_errors, messagetype="E")
+            
+            available_until = datetime.datetime.strptime(json_data.get("available_until"), '%d-%m-%Y').date()
 
-            employee_picture = None
+            job_picture = None
             if request.FILES:
                 fs = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT))
                 files = request.FILES.getlist('picture')
@@ -129,35 +136,37 @@ def update_employee(request, employee_uuid):
                     file = files[0]
                     filename = fs.save(folder + file.name, file)
                     file_url = fs.url(filename)
-                    employee_picture = request.build_absolute_uri(file_url)
+                    job_picture = request.build_absolute_uri(file_url)
 
             update_data(
-                table_name="employee_list",
+                table_name="job",
                 data={
-                    "employee_picture": employee_picture,
-                    "employee_status_id": json_data.get("employee_status_id"),
-                    "employee_name": json_data.get("employee_name"),
-                    "employee_position_id": json_data.get("employee_position_id"),
+                    "position_job": json_data.get("position_job"),
+                    "short_description": json_data.get("short_description"),
+                    "available_until": available_until,
+                    "status_id": json_data.get("status_id"),
+                    "job_picture": job_picture,
+                    "description": json_data.get("description"),
                 },
-                filters={"employee_id": employee_id},
+                filters={"job_id": job_id},
             )
 
-            return Response.ok(data=employee_uuid, message="Employee berhasil diperbarui!", messagetype="S")
+            return Response.ok(data=job_uuid, message="Job berhasil diperbarui!", messagetype="S")
     except Exception as e:
         log_exception(request, e)
         traceback.print_exc()
         return Response.badRequest(request, message=str(e), messagetype="E")
 
 @csrf_exempt
-def delete_employee(request, employee_uuid):
+def delete_job(request, job_uuid):
     try:
         validate_method(request, "DELETE")
         with transaction.atomic():
-            employee_id = get_value('employee_list', filters={'employee_uuid': employee_uuid}, column_name='employee_id')
+            job_id = get_value('job', filters={'job_uuid': job_uuid}, column_name='job_id')
             
-            delete_data("employee_list", filters={"employee_id": employee_id})
+            delete_data("job", filters={"job_id": job_id})
 
-            return Response.ok(data=employee_uuid, message="Project berhasil diperbarui!", messagetype="S")
+            return Response.ok(data=job_uuid, message="Project berhasil diperbarui!", messagetype="S")
     except Exception as e:
         log_exception(request, e)
         traceback.print_exc()

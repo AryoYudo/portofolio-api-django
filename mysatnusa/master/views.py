@@ -34,7 +34,7 @@ def master_employee(request):
         validate_method(request, "GET")
         with transaction.atomic():
             
-            data = get_data(table_name="employee_list", columns=["employee_uuid", "employee_status_id", "employee_name", "employee_position_id"], filters={"employee_status_id": 1})
+            data = get_data(table_name="employee_list", columns=["employee_id","employee_uuid", "employee_status_id", "employee_name", "employee_position_id"])
             
             return Response.ok(data=data, message="List data telah tampil", messagetype="S")
     except Exception as e:
@@ -62,7 +62,7 @@ def master_category(request):
         validate_method(request, "GET")
         with transaction.atomic():
             
-            data = get_data(table_name="m_category", columns=["m_category_uuid", "category_name"])
+            data = get_data(table_name="m_category")
             
             return Response.ok(data=data, message="List data telah tampil", messagetype="S")
     except Exception as e:
@@ -73,10 +73,10 @@ def master_category(request):
 @csrf_exempt
 def master_position(request):
     try:
-        validate_method(request, "GET")
+        # validate_method(request, "GET")
         with transaction.atomic():
             
-            data = get_data(table_name="m_position", columns=["position_uuid", "position_name"])
+            data = get_data(table_name="m_position")
             
             return Response.ok(data=data, message="List data telah tampil", messagetype="S")
     except Exception as e:
@@ -90,7 +90,7 @@ def master_technology(request):
         validate_method(request, "GET")
         with transaction.atomic():
             
-            data = get_data(table_name="m_technology", columns=["m_technology_uuid", "technology_name"])
+            data = get_data(table_name="m_technology")
             
             return Response.ok(data=data, message="List data telah tampil", messagetype="S")
     except Exception as e:
@@ -105,6 +105,20 @@ def master_status_member(request):
         with transaction.atomic():
             
             data = get_data(table_name="status_member", columns=["status_id", "status_name"])
+            
+            return Response.ok(data=data, message="List data telah tampil", messagetype="S")
+    except Exception as e:
+        traceback.print_exc()
+        return Response.badRequest(request, message=str(e), messagetype="E")
+    
+@jwtRequired
+@csrf_exempt
+def master_job_relate(request):
+    try:
+        validate_method(request, "GET")
+        with transaction.atomic():
+            
+            data = get_data(table_name="v_job_relate_project")
             
             return Response.ok(data=data, message="List data telah tampil", messagetype="S")
     except Exception as e:

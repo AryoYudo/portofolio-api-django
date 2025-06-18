@@ -168,6 +168,7 @@ def update_project(request, project_uuid):
                 json_data['category'] = json.loads(json_data.get('category', '[]'))
                 json_data['technology'] = json.loads(json_data.get('technology', '[]'))
                 json_data['member_project'] = json.loads(json_data.get('member_project', '[]'))
+                json_data['job_relate'] = json.loads(json_data.get('job_relate', '[]'))
             except json.JSONDecodeError as e:
                 return Response.badRequest(request, message="Format list salah: " + str(e), messagetype="E")
             
@@ -207,6 +208,8 @@ def update_project(request, project_uuid):
                     "title": json_data.get("title"),
                     "short_description": json_data.get("short_description"),
                     "description": json_data.get("description"),
+                    "start_project": json_data.get("start_project"),
+                    "finish_project": json_data.get("finish_project"),
                     "update_at": datetime.datetime.now()
                 },
                 filters={"project_id": project_id},
@@ -218,7 +221,6 @@ def update_project(request, project_uuid):
                 insert_data("category_project", {
                     "project_id": project_id,
                     "category_id": item.get("category_id"),
-                    "created_by": "Admin",
                     "update_at": datetime.datetime.now()
                 })
 
@@ -227,7 +229,6 @@ def update_project(request, project_uuid):
                 insert_data("technology_project", {
                     "project_id": project_id,
                     "technology_id": item.get("technology_id"),
-                    "created_by": "Admin",
                     "update_at": datetime.datetime.now()
                 })
 
@@ -240,13 +241,17 @@ def update_project(request, project_uuid):
                     "created_by": "Admin",
                     "update_at": datetime.datetime.now()
                 })
+                
+            delete_data("job_relate", filters={"project_id": project_id})
+            for item in json_data.get("job_relate", []):
+                insert_data("job_relate", {
+                    "project_id": project_id,
+                    "job_id": item.get("job_id"),
+                    "position_job": item.get("position_job"),
+                    "created_at": datetime.datetime.now()
+                })
 
-            project_uuid = first_data(
-                table_name="projects",
-                columns=["project_uuid"],
-                filters={"project_id": project_id}
-            )
-
+            project_uuid = first_data( table_name="projects", columns=["project_uuid"], filters={"project_id": project_id} )
             return Response.ok(data=project_uuid, message="Project berhasil diperbarui!", messagetype="S")
 
     except Exception as e:

@@ -27,7 +27,7 @@ env = environ.Env(
 )
 environ.Env.read_env()
 
-@jwtRequired
+@jwtRequired  
 @csrf_exempt
 def list_master_employee(request):
     try:
@@ -43,7 +43,7 @@ def list_master_employee(request):
             if validation_errors:
                 return Response.badRequest(request, message=validation_errors, messagetype="E")
             
-            data = get_data(table_name="employee_list", columns=["employee_uuid", "employee_name", "employee_picture", "employee_position_id"], search=search, search_columns=["employee_name"])
+            data = get_data(table_name="v_employee", columns=["employee_uuid", "employee_name", "employee_picture", "employee_status", "employee_position", "employee_position_id"], search=search, search_columns=["employee_name"])
             
             return Response.ok(data=data, message="List data telah tampil", messagetype="S")
     except Exception as e:
@@ -85,6 +85,7 @@ def add_master_employee(request):
                     "employee_status_id": json_data.get("employee_status_id"),
                     "employee_name": json_data.get("employee_name"),
                     "employee_position_id": json_data.get("employee_position_id"),
+                    "created_at": datetime.datetime.now()
                 },
                 column_id="employee_id"
             )
