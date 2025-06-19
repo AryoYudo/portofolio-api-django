@@ -113,3 +113,17 @@ def applicants(request):
         log_exception(request, e)
         traceback.print_exc()
         return Response.badRequest(request, message=str(e), messagetype="E")
+
+
+@csrf_exempt
+def list_applicants(request):
+    try:
+        validate_method(request, "GET")
+        with transaction.atomic():
+
+            data = get_data( table_name="v_applicants")
+            
+            return Response.ok(data=data, message="List data telah tampil", messagetype="S")
+    except Exception as e:
+        traceback.print_exc()
+        return Response.badRequest(request, message=str(e), messagetype="E")
