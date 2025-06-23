@@ -117,7 +117,7 @@ def master_job_relate(request):
         validate_method(request, "GET")
         with transaction.atomic():
             
-            data = get_data(table_name="v_job_relate_project")
+            data = get_data(table_name="job")
             
             return Response.ok(data=data, message="List data telah tampil", messagetype="S")
     except Exception as e:
