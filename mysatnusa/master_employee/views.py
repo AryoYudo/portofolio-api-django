@@ -161,5 +161,32 @@ def delete_employee(request, employee_uuid):
         log_exception(request, e)
         traceback.print_exc()
         return Response.badRequest(request, message=str(e), messagetype="E")
+    
+    
+@csrf_exempt
+def list_employee(request):
+    try:
+        validate_method(request, "GET")
+        with transaction.atomic():
+            filters = {}
+            if request.GET.get('filters'):
+                filters = {
+                    "employee_position_id": request.GET.get('filters')
+                }
+
+            data = get_data(
+                table_name="v_employee",
+                columns=[
+                    "employee_uuid", "employee_name", "employee_picture",
+                    "employee_status", "employee_position", "employee_position_id"
+                ],
+                filters=filters,
+            )
+
+            return Response.ok(data=data, message="List data telah tampil", messagetype="S")
+    except Exception as e:
+        traceback.print_exc()
+        return Response.badRequest(request, message=str(e), messagetype="E")
+
 
 

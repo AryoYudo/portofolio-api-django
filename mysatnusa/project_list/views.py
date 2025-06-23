@@ -279,3 +279,98 @@ def delete_project(request, project_uuid):
         return Response.badRequest(request, message=str(e), messagetype="E")
 
 
+@csrf_exempt
+def list_project(request):
+    try:
+        validate_method(request, "GET")
+        with transaction.atomic():
+            category = request.GET.get('category')
+            year = request.GET.get('year')
+
+           # Ambil list project_id kalau ada filter kategori
+            project_ids = None
+            if category:
+                related = get_data( table_name="v_project_categories", filters={"category_id": category}, columns=["project_id"] )
+                project_ids = [item["project_id"] for item in related]
+
+            # Bangun query
+            sql = """
+                SELECT project_id, project_uuid, thumbnail_project, title, finish_project
+                FROM projects
+                WHERE 1=1
+            """
+            params = []
+
+            if project_ids is not None:
+                if len(project_ids) == 0:
+                    return Response.ok(data=[], message="Tidak ada proyek yang cocok", messagetype="S")
+                sql += " AND project_id IN %s"
+                params.append(tuple(project_ids))
+
+            if year:
+                sql += " AND TO_CHAR(finish_project, 'YYYY') = %s"
+                params.append(str(year))
+
+            project = execute_query(sql_query=sql, params=tuple(params))
+
+            data = []
+            for item in project:
+                project_categories = get_data( table_name="v_project_categories", filters={"project_id": item.get("project_id")}, columns=["category_name", "category_id"] )
+                technology_project = get_data( table_name="v_technology_project", filters={"project_id": item.get("project_id")}, columns=["technology_id", "technology_name"] )
+                data.append({
+                    **item,
+                    "project_categories": project_categories,
+                    "technology_project": technology_project
+                })
+
+            return Response.ok(data=data, message="List data telah tampil", messagetype="S")
+    except Exception as e:
+        traceback.print_exc()
+        return Response.badRequest(request, message=str(e), messagetype="E")
+    
+    
+@csrf_exempt
+def detail_project(request, project_uuid):
+    try:
+        validate_method(request, "GET")
+        with transaction.atomic():
+            # Ambil project_id dari uuid
+            project_id = get_value( table_name='projects', filters={'project_uuid': project_uuid}, column_name='project_id', type='UUID' )
+
+            data_project = first_data( table_name="projects", filters={'project_id': project_id}, columns=['thumbnail_project', 'title', 'short_description', 'description'] )
+            main_project_categories = get_data( table_name="v_project_categories", filters={"project_id": project_id}, columns=["category_id", "category_name"] )
+            main_technology_project = get_data( table_name="v_technology_project", filters={"project_id": project_id}, columns=["technology_id", "technology_name"] )
+            employee_participant = get_data( table_name="v_employee_participant", filters={"project_id": project_id}, columns=["employee_name", "employee_position", "employee_picture"] )
+            job_relate_project = get_data( table_name="v_job_relate_project", filters={"project_id": project_id}, columns=["position_job", "job_picture"] )
+
+            others_project = []
+            all_projects = get_data( table_name="projects", columns=["project_id", "project_uuid", "thumbnail_project", "title", "finish_project"] )
+            for item in all_projects:
+                if item.get("project_id") == project_id:
+                    continue  # Skip project ini sendiri
+
+                if len(others_project) >= 4:
+                    break
+                other_categories = get_data( table_name="v_project_categories", filters={"project_id": item.get("project_id")}, columns=["category_name", "category_id"] )
+                other_technologies = get_data( table_name="v_technology_project", filters={"project_id": item.get("project_id")}, columns=["technology_id", "technology_name"] )
+                others_project.append({
+                    **item,
+                    "project_categories": other_categories,
+                    "technology_project": other_technologies
+                })
+
+            data = {
+                **data_project,
+                "project_categories": main_project_categories,
+                "technology_project": main_technology_project,
+                "employee_participant": employee_participant,
+                "job_relate_project": job_relate_project,
+                "others_project": others_project
+            }
+
+            return Response.ok(data=data, message="Detail data concepts telah tampil", messagetype="S")
+
+    except Exception as e:
+        traceback.print_exc()
+        log_exception(request, e)
+        return Response.badRequest(request, message=str(e), messagetype="E")
