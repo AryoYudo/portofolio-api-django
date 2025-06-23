@@ -55,7 +55,6 @@ def master_internship(request):
         traceback.print_exc()
         return Response.badRequest(request, message=str(e), messagetype="E")
     
-@jwtRequired
 @csrf_exempt
 def master_category(request):
     try:

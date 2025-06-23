@@ -337,10 +337,10 @@ def detail_project(request, project_uuid):
             # Ambil project_id dari uuid
             project_id = get_value( table_name='projects', filters={'project_uuid': project_uuid}, column_name='project_id', type='UUID' )
 
-            data_project = first_data( table_name="projects", filters={'project_id': project_id}, columns=['thumbnail_project', 'title', 'short_description', 'description'] )
+            data_project = first_data( table_name="projects", filters={'project_id': project_id}, columns=['thumbnail_project', 'title', 'short_description', 'description', 'start_project', 'finish_project'] )
             main_project_categories = get_data( table_name="v_project_categories", filters={"project_id": project_id}, columns=["category_id", "category_name"] )
             main_technology_project = get_data( table_name="v_technology_project", filters={"project_id": project_id}, columns=["technology_id", "technology_name"] )
-            employee_participant = get_data( table_name="v_employee_participant", filters={"project_id": project_id}, columns=["employee_name", "employee_position", "employee_picture"] )
+            employee_participant = get_data( table_name="v_employee_participant", filters={"project_id": project_id}, columns=["employee_name", "employee_position", "employee_status", "employee_picture"] )
             job_relate_project = get_data( table_name="v_job_relate_project", filters={"project_id": project_id}, columns=["position_job", "job_picture"] )
 
             others_project = []
