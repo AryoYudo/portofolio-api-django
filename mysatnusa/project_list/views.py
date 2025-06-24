@@ -334,7 +334,6 @@ def detail_project(request, project_uuid):
     try:
         validate_method(request, "GET")
         with transaction.atomic():
-            # Ambil project_id dari uuid
             project_id = get_value( table_name='projects', filters={'project_uuid': project_uuid}, column_name='project_id', type='UUID' )
 
             data_project = first_data( table_name="projects", filters={'project_id': project_id}, columns=['thumbnail_project', 'title', 'short_description', 'description', 'start_project', 'finish_project'] )
@@ -369,7 +368,6 @@ def detail_project(request, project_uuid):
             }
 
             return Response.ok(data=data, message="Detail data concepts telah tampil", messagetype="S")
-
     except Exception as e:
         traceback.print_exc()
         log_exception(request, e)
