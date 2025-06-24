@@ -278,7 +278,6 @@ def delete_project(request, project_uuid):
         traceback.print_exc()
         return Response.badRequest(request, message=str(e), messagetype="E")
 
-
 @csrf_exempt
 def list_project(request):
     try:
@@ -327,7 +326,6 @@ def list_project(request):
     except Exception as e:
         traceback.print_exc()
         return Response.badRequest(request, message=str(e), messagetype="E")
-    
     
 @csrf_exempt
 def detail_project(request, project_uuid):
