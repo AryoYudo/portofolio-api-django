@@ -99,20 +99,8 @@ WSGI_APPLICATION = 'mysatnusa.wsgi.application'
 
 # postgre
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'website',
-        'USER': 'avnadmin',
-        'PASSWORD': 'AVNS_SLIAlOehTnmdpZrhnNN',
-        'HOST': 'e-ticketing-e-ticketing.g.aivencloud.com',
-        'PORT': '13345',
-        'OPTIONS': {
-            'sslmode': 'require',  # hanya jika Aiven perlu SSL
-        },
-    },
+    'default': env.db(),  # otomatis parse dari DATABASE_URL
 }
-
-
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
