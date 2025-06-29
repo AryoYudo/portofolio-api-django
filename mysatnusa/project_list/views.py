@@ -138,7 +138,6 @@ def insert_project(request):
                     "project_id": project_id,
                     "employee_id": item.get("employee_id"),
                     "employee_name": item.get("employee_name"),
-                    "created_by": "Aryo",
                 })
                 
             for item in json_data.get("job_relate", []):

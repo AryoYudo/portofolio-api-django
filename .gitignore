@@ -1,0 +1,31 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment
+.env
+venv/
+ENV/
+env/
+.venv/
+
+# Django specific
+*.log
+*.pot
+*.pyc
+*.pyo
+*.db
+*.sqlite3
+*.sqlite
+
+# VS Code & IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# MacOS/Linux
+.DS_Store
+Thumbs.db
+

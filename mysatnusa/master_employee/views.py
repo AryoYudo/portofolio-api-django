@@ -43,7 +43,7 @@ def list_master_employee(request):
             if validation_errors:
                 return Response.badRequest(request, message=validation_errors, messagetype="E")
             
-            data = get_data(table_name="v_employee", columns=["employee_uuid", "employee_name", "employee_picture", "employee_status", "employee_position", "employee_position_id"], search=search, search_columns=["employee_name"])
+            data = get_data(table_name="v_employee", columns=["employee_uuid", "employee_name", "employee_picture", "employee_status", "employee_position", "employee_position_id"], order_by="employee_name ASC", search=search, search_columns=["employee_name"])
             
             return Response.ok(data=data, message="List data telah tampil", messagetype="S")
     except Exception as e:
