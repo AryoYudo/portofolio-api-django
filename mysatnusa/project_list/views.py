@@ -139,14 +139,16 @@ def insert_project(request):
                     "employee_id": item.get("employee_id"),
                     "employee_name": item.get("employee_name"),
                 })
-                
-            for item in json_data.get("job_relate", []):
-                insert_data("job_relate", {
-                    "project_id": project_id,
-                    "job_id": item.get("job_id"),
-                    "position_job": item.get("position_job"),
-                    "created_at": datetime.datetime.now()
-                })
+            
+            job_relate = json_data.get("job_relate", [])
+            if job_relate:
+                for item in job_relate:
+                    insert_data("job_relate", {
+                        "project_id": project_id,
+                        "job_id": item.get("job_id"),
+                        "position_job": item.get("position_job"),
+                        "created_at": datetime.datetime.now()
+                    })
 
             project_uuid = first_data( table_name="projects", columns=["project_uuid"], filters={"project_id": project_id} )
 
@@ -237,22 +239,22 @@ def update_project(request, project_uuid):
                     "project_id": project_id,
                     "employee_id": item.get("employee_id"),
                     "employee_name": item.get("employee_name"),
-                    "created_by": "Admin",
                     "update_at": datetime.datetime.now()
                 })
-                
-            delete_data("job_relate", filters={"project_id": project_id})
-            for item in json_data.get("job_relate", []):
-                insert_data("job_relate", {
-                    "project_id": project_id,
-                    "job_id": item.get("job_id"),
-                    "position_job": item.get("position_job"),
-                    "created_at": datetime.datetime.now()
-                })
+            
+            job_relate = json_data.get("job_relate", [])
+            if job_relate:
+                delete_data("job_relate", filters={"project_id": project_id})
+                for item in json_data.get("job_relate", []):
+                    insert_data("job_relate", {
+                        "project_id": project_id,
+                        "job_id": item.get("job_id"),
+                        "position_job": item.get("position_job"),
+                        "created_at": datetime.datetime.now()
+                    })
 
             project_uuid = first_data( table_name="projects", columns=["project_uuid"], filters={"project_id": project_id} )
             return Response.ok(data=project_uuid, message="Project berhasil diperbarui!", messagetype="S")
-
     except Exception as e:
         log_exception(request, e)
         traceback.print_exc()
