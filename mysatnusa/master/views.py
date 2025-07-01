@@ -72,7 +72,7 @@ def master_category(request):
 @csrf_exempt
 def master_position(request):
     try:
-        # validate_method(request, "GET")
+        validate_method(request, "GET")
         with transaction.atomic():
             
             data = get_data(table_name="m_position")
@@ -127,15 +127,12 @@ def master_job_relate(request):
 @csrf_exempt
 def get_knowledge_data(request):
     try:
-        # validate_method(request, "GET")
+        validate_method(request, "GET")
         with transaction.atomic():
             
             information_project = []
 
-            projects_list = get_data(
-                "projects",
-                columns="project_id, title, short_description, description, start_project, finish_project"
-            )
+            projects_list = get_data( "projects", columns="project_id, title, short_description, description, start_project, finish_project" )
             for p in projects_list:
                 pid = p["project_id"]
                 information_project.append({
