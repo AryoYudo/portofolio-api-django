@@ -77,7 +77,6 @@ def insert_project(request):
             if validation_errors:
                 return Response.badRequest(request, message=validation_errors, messagetype="E")
             
-              # Langsung parse date di sini
             start_project = json_data.get("start_project")
             finish_project = json_data.get("finish_project")
 
@@ -177,7 +176,6 @@ def update_project(request, project_uuid):
             if not exists_data('projects', filters={"project_id": project_id}):
                 return Response.badRequest(request, message="Project tidak ditemukan", messagetype="E")
 
-            # Validasi data field utama
             rules = {
                 'title': 'required|string|min:3|max:255',
                 'short_description': 'required|string|min:3|max:62',

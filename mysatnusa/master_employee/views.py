@@ -186,6 +186,3 @@ def list_employee(request):
     except Exception as e:
         traceback.print_exc()
         return Response.badRequest(request, message=str(e), messagetype="E")
-
-
-

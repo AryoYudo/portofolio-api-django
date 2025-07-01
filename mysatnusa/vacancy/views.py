@@ -114,7 +114,6 @@ def applicants(request):
         traceback.print_exc()
         return Response.badRequest(request, message=str(e), messagetype="E")
 
-
 @csrf_exempt
 def list_applicants(request):
     try:
