@@ -59,7 +59,6 @@ def insert_project(request):
 
             json_data = request.POST.dict()
 
-            # parsing list string ke list asli
             try:
                 json_data['category'] = json.loads(json_data.get('category', '[]'))
                 json_data['technology'] = json.loads(json_data.get('technology', '[]'))
@@ -267,7 +266,6 @@ def delete_project(request, project_uuid):
         with transaction.atomic():
             project_id = get_value('projects', filters={'project_uuid': project_uuid}, column_name='project_id')
             
-            # Delete relasi lama dan insert data baru
             delete_data("projects", filters={"project_id": project_id})
             delete_data("category_project", filters={"project_id": project_id})
             delete_data("technology_project", filters={"project_id": project_id})
@@ -287,13 +285,11 @@ def list_project(request):
             category = request.GET.get('category')
             year = request.GET.get('year')
 
-           # Ambil list project_id kalau ada filter kategori
             project_ids = None
             if category:
                 related = get_data( table_name="v_project_categories", filters={"category_id": category}, columns=["project_id"] )
                 project_ids = [item["project_id"] for item in related]
 
-            # Bangun query
             sql = """
                 SELECT project_id, project_uuid, thumbnail_project, title, finish_project
                 FROM projects
@@ -345,7 +341,7 @@ def detail_project(request, project_uuid):
             all_projects = get_data( table_name="projects", columns=["project_id", "project_uuid", "thumbnail_project", "title", "finish_project"] )
             for item in all_projects:
                 if item.get("project_id") == project_id:
-                    continue  # Skip project ini sendiri
+                    continue  
 
                 if len(others_project) >= 4:
                     break
