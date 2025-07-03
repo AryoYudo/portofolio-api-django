@@ -4,7 +4,7 @@ import traceback
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
-API_KEY = "AIzaSyBuepyebTJNmvsw2pYKABEaI-Vebsjtw6E"  # ganti sama punyamu
+API_KEY = "AIzaSyBotKjgCQ-qnnnuW9O8RlrRHBPKN4k88AI"  # ganti sama punyamu
 @csrf_exempt
 def gemini_chat_view(request):
     if request.method != "POST":
@@ -18,7 +18,8 @@ def gemini_chat_view(request):
             return JsonResponse({"error": "user_input kosong"}, status=400)
 
         # Ambil data knowledge base
-        response = requests.get("http://127.0.0.1:8000/api/master/get_knowledge_data")
+        response = requests.get("http://127.0.0.1:8000/api/master/get_knowledge_data", headers={"Content-Type": "application/json", "User-Agent": "Mozilla/5.0"})
+
         if response.status_code != 200:
             return JsonResponse({"error": "Gagal ambil data knowledge base"}, status=500)
 
@@ -109,4 +110,5 @@ def gemini_chat_view(request):
         return JsonResponse({"response": output_text})
     except Exception as e:
         traceback.print_exc()
+        log_exception(request, e)
         return JsonResponse({"error": str(e)}, status=500)
