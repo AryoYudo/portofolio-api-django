@@ -81,9 +81,6 @@ def gemini_chat_view(request):
             }
         )
 
-        print("Status Code:", gemini_response.status_code)
-        print("Response Text:", gemini_response.text)
-
         if gemini_response.status_code != 200:
             return JsonResponse({
                 "error": "Gagal generate jawaban dari Gemini",
