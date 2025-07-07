@@ -52,6 +52,34 @@ def list_data_project(request):
     
 @jwtRequired
 @csrf_exempt
+def data_project(request):
+    try:
+        validate_method(request, "GET")
+        with transaction.atomic():
+            
+            data = get_data(table_name="projects", columns=["project_uuid", "thumbnail_project", "title", "short_description", "description"])
+            
+            query = """
+            SELECT 
+                project_uuid,  
+                thumbnail_project, 
+                title, 
+                short_description, 
+                description
+            FROM projects
+                ORDER BY created_at DESC
+            LIMIT 5;
+            
+            """
+            data = execute_query(sql_query=query)
+            
+            return Response.ok(data=data, message="List data telah tampil", messagetype="S")
+    except Exception as e:
+        traceback.print_exc()
+        return Response.badRequest(request, message=str(e), messagetype="E")
+    
+@jwtRequired
+@csrf_exempt
 def insert_project(request):
     try:
         validate_method(request, "POST")
@@ -317,6 +345,38 @@ def list_project(request):
                     "technology_project": technology_project
                 })
 
+            return Response.ok(data=data, message="List data telah tampil", messagetype="S")
+    except Exception as e:
+        traceback.print_exc()
+        return Response.badRequest(request, message=str(e), messagetype="E")
+
+@csrf_exempt
+def data_project(request):
+    try:
+        validate_method(request, "GET")
+        with transaction.atomic():
+            
+            query = """
+            SELECT 
+                p.project_uuid,  
+                p.project_id,
+                p.thumbnail_project, 
+                p.title,
+                (
+                    SELECT json_build_object('category_name', pc.category_name, 'category_id', pc.category_id)
+                    FROM v_project_categories pc
+                    WHERE pc.project_id = p.project_id
+                    LIMIT 1
+                ) AS project_category
+            FROM projects p
+            ORDER BY p.created_at DESC
+            LIMIT 5;
+            """
+
+            data = execute_query(sql_query=query)
+
+
+            
             return Response.ok(data=data, message="List data telah tampil", messagetype="S")
     except Exception as e:
         traceback.print_exc()
