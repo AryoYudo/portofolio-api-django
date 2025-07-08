@@ -118,7 +118,7 @@ def update_employee(request, employee_uuid):
             if validation_errors:
                 return Response.badRequest(request, message=validation_errors, messagetype="E")
 
-            employee_picture = None
+            employee_picture = get_value('employee_list', filters={'employee_id': employee_id}, column_name='employee_picture')
             if request.FILES:
                 fs = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT))
                 files = request.FILES.getlist('picture')

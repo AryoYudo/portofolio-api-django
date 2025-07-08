@@ -43,7 +43,7 @@ def list_data_project(request):
             if validation_errors:
                 return Response.badRequest(request, message=validation_errors, messagetype="E")
             
-            data = get_data(table_name="projects", columns=["project_uuid", "thumbnail_project", "title", "short_description", "description"], search=search, search_columns=["title", "short_description"])
+            data = get_data(table_name="projects", columns=["project_id", "project_uuid", "thumbnail_project", "title", "short_description", "description"], search=search, search_columns=["title", "short_description"])
             
             return Response.ok(data=data, message="List data telah tampil", messagetype="S")
     except Exception as e:
@@ -215,7 +215,7 @@ def update_project(request, project_uuid):
                 return Response.badRequest(request, message=validation_errors, messagetype="E")
 
             # Handle file upload (thumbnail)
-            thumbnail_project = None
+            thumbnail_project = get_value('projects', filters={'project_id': project_id}, column_name='thumbnail_project')
             if request.FILES:
                 fs = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT))
                 files = request.FILES.getlist('picture')
@@ -337,8 +337,8 @@ def list_project(request):
 
             data = []
             for item in project:
-                project_categories = get_data( table_name="v_project_categories", filters={"project_id": item.get("project_id")}, columns=["category_name", "category_id"] )
-                technology_project = get_data( table_name="v_technology_project", filters={"project_id": item.get("project_id")}, columns=["technology_id", "technology_name"] )
+                project_categories = get_data( table_name="v_project_categories", filters={"project_id": item.get("project_id")}, columns=["category_name", "category_id", "logo"] )
+                technology_project = get_data( table_name="v_technology_project", filters={"project_id": item.get("project_id")}, columns=["technology_id", "technology_name"], limit=5 )
                 data.append({
                     **item,
                     "project_categories": project_categories,
@@ -363,7 +363,7 @@ def data_project(request):
                 p.thumbnail_project, 
                 p.title,
                 (
-                    SELECT json_build_object('category_name', pc.category_name, 'category_id', pc.category_id)
+                    SELECT json_build_object('category_name', pc.category_name, 'category_id', pc.category_id, 'logo', pc.logo)
                     FROM v_project_categories pc
                     WHERE pc.project_id = p.project_id
                     LIMIT 1
@@ -390,10 +390,10 @@ def detail_project(request, project_uuid):
             project_id = get_value( table_name='projects', filters={'project_uuid': project_uuid}, column_name='project_id', type='UUID' )
 
             data_project = first_data( table_name="projects", filters={'project_id': project_id}, columns=['thumbnail_project', 'title', 'short_description', 'description', 'start_project', 'finish_project'] )
-            main_project_categories = get_data( table_name="v_project_categories", filters={"project_id": project_id}, columns=["category_id", "category_name"] )
+            main_project_categories = get_data( table_name="v_project_categories", filters={"project_id": project_id}, columns=["category_id", "category_name", "logo"] )
             main_technology_project = get_data( table_name="v_technology_project", filters={"project_id": project_id}, columns=["technology_id", "technology_name"] )
             employee_participant = get_data( table_name="v_employee_participant", filters={"project_id": project_id}, columns=["employee_id", "employee_name", "employee_position", "employee_status", "employee_picture"] )
-            job_relate_project = get_data( table_name="v_job_relate_project", filters={"project_id": project_id}, columns=["position_job", "job_picture"] )
+            job_relate_project = get_data( table_name="v_job_relate_project", filters={"project_id": project_id}, columns=["job_uuid", "position_job", "job_picture"] )
 
             others_project = []
             all_projects = get_data( table_name="projects", columns=["project_id", "project_uuid", "thumbnail_project", "title", "finish_project"] )
@@ -403,7 +403,7 @@ def detail_project(request, project_uuid):
 
                 if len(others_project) >= 4:
                     break
-                other_categories = get_data( table_name="v_project_categories", filters={"project_id": item.get("project_id")}, columns=["category_name", "category_id"] )
+                other_categories = get_data( table_name="v_project_categories", filters={"project_id": item.get("project_id")}, columns=["category_name", "category_id", "logo"] )
                 other_technologies = get_data( table_name="v_technology_project", filters={"project_id": item.get("project_id")}, columns=["technology_id", "technology_name"] )
                 others_project.append({
                     **item,

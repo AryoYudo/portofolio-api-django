@@ -126,8 +126,8 @@ def update_job(request, job_uuid):
                 return Response.badRequest(request, message=validation_errors, messagetype="E")
             
             available_until = datetime.datetime.strptime(json_data.get("available_until"), '%d-%m-%Y').date()
-
-            job_picture = None
+            
+            job_picture = get_value('job', filters={'job_id': job_id}, column_name='job_picture')
             if request.FILES:
                 fs = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT))
                 files = request.FILES.getlist('picture')
